@@ -1,0 +1,48 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sites_backPool_name": {
+            "value": null
+        },
+        "sites_ImageLoader_name": {
+            "value": null
+        },
+        "components_backPool_name": {
+            "value": null
+        },
+        "sites_LogForpdfGenerator_name": {
+            "value": null
+        },
+        "components_ImageLoader_name": {
+            "value": null
+        },
+        "servers_imageloader123_name": {
+            "value": null
+        },
+        "frontdoors_FronEndEntering_name": {
+            "value": null
+        },
+        "components_LogForpdfGenerator_name": {
+            "value": null
+        },
+        "storageAccounts_azurefunctionapp20200804_name": {
+            "value": null
+        },
+        "serverfarms_ASP_AzureFunctionApp20200804202733R_805d_name": {
+            "value": null
+        },
+        "actionGroups_Application_Insights_Smart_Detection_name": {
+            "value": null
+        },
+        "smartdetectoralertrules_failure_anomalies___backpool_name": {
+            "value": null
+        },
+        "smartdetectoralertrules_failure_anomalies___imageloader_name": {
+            "value": null
+        },
+        "smartdetectoralertrules_failure_anomalies___logforpdfgenerator_name": {
+            "value": null
+        }
+    }
+}

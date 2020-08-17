@@ -1,0 +1,2938 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "sites_backPool_name": {
+            "defaultValue": "backPool",
+            "type": "String"
+        },
+        "sites_ImageLoader_name": {
+            "defaultValue": "ImageLoader",
+            "type": "String"
+        },
+        "components_backPool_name": {
+            "defaultValue": "backPool",
+            "type": "String"
+        },
+        "sites_LogForpdfGenerator_name": {
+            "defaultValue": "LogForpdfGenerator",
+            "type": "String"
+        },
+        "components_ImageLoader_name": {
+            "defaultValue": "ImageLoader",
+            "type": "String"
+        },
+        "servers_imageloader123_name": {
+            "defaultValue": "imageloader123",
+            "type": "String"
+        },
+        "frontdoors_FronEndEntering_name": {
+            "defaultValue": "FronEndEntering",
+            "type": "String"
+        },
+        "components_LogForpdfGenerator_name": {
+            "defaultValue": "LogForpdfGenerator",
+            "type": "String"
+        },
+        "storageAccounts_azurefunctionapp20200804_name": {
+            "defaultValue": "azurefunctionapp20200804",
+            "type": "String"
+        },
+        "serverfarms_ASP_AzureFunctionApp20200804202733R_805d_name": {
+            "defaultValue": "ASP-AzureFunctionApp20200804202733R-805d",
+            "type": "String"
+        },
+        "actionGroups_Application_Insights_Smart_Detection_name": {
+            "defaultValue": "Application Insights Smart Detection",
+            "type": "String"
+        },
+        "smartdetectoralertrules_failure_anomalies___backpool_name": {
+            "defaultValue": "failure anomalies - backpool",
+            "type": "String"
+        },
+        "smartdetectoralertrules_failure_anomalies___imageloader_name": {
+            "defaultValue": "failure anomalies - imageloader",
+            "type": "String"
+        },
+        "smartdetectoralertrules_failure_anomalies___logforpdfgenerator_name": {
+            "defaultValue": "failure anomalies - logforpdfgenerator",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.DBforMySQL/servers",
+            "apiVersion": "2017-12-01",
+            "name": "[parameters('servers_imageloader123_name')]",
+            "location": "eastus",
+            "sku": {
+                "name": "GP_Gen5_4",
+                "tier": "GeneralPurpose",
+                "family": "Gen5",
+                "capacity": 4
+            },
+            "properties": {
+                "storageProfile": {
+                    "storageMB": 102400,
+                    "backupRetentionDays": 7,
+                    "geoRedundantBackup": "Disabled",
+                    "storageAutogrow": "Enabled"
+                },
+                "version": "5.7",
+                "sslEnforcement": "Enabled",
+                "minimalTlsVersion": "TLSEnforcementDisabled",
+                "infrastructureEncryption": "Disabled",
+                "publicNetworkAccess": "Enabled"
+            }
+        },
+        {
+            "type": "microsoft.insights/actionGroups",
+            "apiVersion": "2019-03-01",
+            "name": "[parameters('actionGroups_Application_Insights_Smart_Detection_name')]",
+            "location": "Global",
+            "properties": {
+                "groupShortName": "SmartDetect",
+                "enabled": true,
+                "emailReceivers": [],
+                "smsReceivers": [],
+                "webhookReceivers": [],
+                "itsmReceivers": [],
+                "azureAppPushReceivers": [],
+                "automationRunbookReceivers": [],
+                "voiceReceivers": [],
+                "logicAppReceivers": [],
+                "azureFunctionReceivers": []
+            }
+        },
+        {
+            "type": "microsoft.insights/components",
+            "apiVersion": "2018-05-01-preview",
+            "name": "[parameters('components_backPool_name')]",
+            "location": "eastus",
+            "kind": "web",
+            "properties": {
+                "Application_Type": "web",
+                "Request_Source": "IbizaWebAppExtensionCreate",
+                "RetentionInDays": 90,
+                "publicNetworkAccessForIngestion": "Enabled",
+                "publicNetworkAccessForQuery": "Enabled"
+            }
+        },
+        {
+            "type": "microsoft.insights/components",
+            "apiVersion": "2018-05-01-preview",
+            "name": "[parameters('components_ImageLoader_name')]",
+            "location": "eastus",
+            "kind": "web",
+            "properties": {
+                "Application_Type": "web",
+                "Request_Source": "IbizaWebAppExtensionCreate",
+                "RetentionInDays": 90,
+                "publicNetworkAccessForIngestion": "Enabled",
+                "publicNetworkAccessForQuery": "Enabled"
+            }
+        },
+        {
+            "type": "microsoft.insights/components",
+            "apiVersion": "2018-05-01-preview",
+            "name": "[parameters('components_LogForpdfGenerator_name')]",
+            "location": "eastus",
+            "kind": "web",
+            "properties": {
+                "Application_Type": "web",
+                "Request_Source": "IbizaWebAppExtensionCreate",
+                "RetentionInDays": 90,
+                "publicNetworkAccessForIngestion": "Enabled",
+                "publicNetworkAccessForQuery": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/frontdoors",
+            "apiVersion": "2020-05-01",
+            "name": "[parameters('frontdoors_FronEndEntering_name')]",
+            "location": "Global",
+            "properties": {
+                "resourceState": "Enabled",
+                "backendPools": [
+                    {
+                        "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontdoors_FronEndEntering_name')), '/BackendPools/BackEndEntring')]",
+                        "name": "BackEndEntring",
+                        "properties": {
+                            "backends": [
+                                {
+                                    "address": "backpool.azurewebsites.net",
+                                    "httpPort": 80,
+                                    "httpsPort": 443,
+                                    "priority": 1,
+                                    "weight": 50,
+                                    "backendHostHeader": "backpool.azurewebsites.net",
+                                    "enabledState": "Enabled"
+                                }
+                            ],
+                            "healthProbeSettings": {
+                                "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontdoors_FronEndEntering_name')), '/healthProbeSettings/healthProbeSettings-1597581598370')]"
+                            },
+                            "loadBalancingSettings": {
+                                "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontdoors_FronEndEntering_name')), '/loadBalancingSettings/loadBalancingSettings-1597581598370')]"
+                            },
+                            "resourceState": "Enabled"
+                        }
+                    }
+                ],
+                "healthProbeSettings": [
+                    {
+                        "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontdoors_FronEndEntering_name')), '/HealthProbeSettings/healthProbeSettings-1597581598370')]",
+                        "name": "healthProbeSettings-1597581598370",
+                        "properties": {
+                            "intervalInSeconds": 30,
+                            "path": "/pdfGenerator/",
+                            "protocol": "Https",
+                            "resourceState": "Enabled",
+                            "enabledState": "Enabled",
+                            "healthProbeMethod": "Head"
+                        }
+                    }
+                ],
+                "frontendEndpoints": [
+                    {
+                        "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontdoors_FronEndEntering_name')), concat('/FrontendEndpoints/', parameters('frontdoors_FronEndEntering_name'), '-azurefd-net'))]",
+                        "name": "[concat(parameters('frontdoors_FronEndEntering_name'), '-azurefd-net')]",
+                        "properties": {
+                            "hostName": "[concat(parameters('frontdoors_FronEndEntering_name'), '.azurefd.net')]",
+                            "sessionAffinityEnabledState": "Disabled",
+                            "sessionAffinityTtlSeconds": 0,
+                            "resourceState": "Enabled"
+                        }
+                    }
+                ],
+                "loadBalancingSettings": [
+                    {
+                        "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontdoors_FronEndEntering_name')), '/LoadBalancingSettings/loadBalancingSettings-1597581598370')]",
+                        "name": "loadBalancingSettings-1597581598370",
+                        "properties": {
+                            "additionalLatencyMilliseconds": 0,
+                            "sampleSize": 4,
+                            "successfulSamplesRequired": 2,
+                            "resourceState": "Enabled"
+                        }
+                    }
+                ],
+                "routingRules": [
+                    {
+                        "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontdoors_FronEndEntering_name')), '/RoutingRules/BackEndEntering')]",
+                        "name": "BackEndEntering",
+                        "properties": {
+                            "frontendEndpoints": [
+                                {
+                                    "id": "[concat(resourceId('Microsoft.Network/frontdoors', parameters('frontdoors_FronEndEntering_name')), concat('/frontendEndpoints/', parameters('frontdoors_FronEndEntering_name'), '-azurefd-net'))]"
+                                }
+                            ],
+                            "acceptedProtocols": [
+                                "Http",
+                                "Https"
+                            ],
+                            "patternsToMatch": [
+                                "/pdfGenerator/"
+                            ],
+                            "enabledState": "Enabled",
+                            "resourceState": "Enabled",
+                            "routeConfiguration": {
+                                "@odata.type": "#Microsoft.Azure.FrontDoor.Models.FrontdoorRedirectConfiguration",
+                                "customFragment": "/imageloader",
+                                "customHost": "backpool.azurewebsites.net",
+                                "customPath": "/pdfGenerator/",
+                                "redirectProtocol": "HttpsOnly",
+                                "redirectType": "Moved"
+                            }
+                        }
+                    }
+                ],
+                "backendPoolsSettings": {
+                    "enforceCertificateNameCheck": "Enabled",
+                    "sendRecvTimeoutSeconds": 30
+                },
+                "enabledState": "Enabled",
+                "friendlyName": "[parameters('frontdoors_FronEndEntering_name')]"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-06-01",
+            "name": "[parameters('storageAccounts_azurefunctionapp20200804_name')]",
+            "location": "eastus",
+            "tags": {
+                "hidden-related:/providers/Microsoft.Web/sites/AzureFunctionApp20200804202733": "empty"
+            },
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "kind": "Storage",
+            "properties": {
+                "networkAcls": {
+                    "bypass": "AzureServices",
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
+                    "defaultAction": "Allow"
+                },
+                "supportsHttpsTrafficOnly": false,
+                "encryption": {
+                    "services": {
+                        "file": {
+                            "keyType": "Account",
+                            "enabled": true
+                        },
+                        "blob": {
+                            "keyType": "Account",
+                            "enabled": true
+                        }
+                    },
+                    "keySource": "Microsoft.Storage"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2018-02-01",
+            "name": "[parameters('serverfarms_ASP_AzureFunctionApp20200804202733R_805d_name')]",
+            "location": "East US",
+            "sku": {
+                "name": "F1",
+                "tier": "Free",
+                "size": "F1",
+                "family": "F",
+                "capacity": 0
+            },
+            "kind": "app",
+            "properties": {
+                "perSiteScaling": false,
+                "maximumElasticWorkerCount": 1,
+                "isSpot": false,
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "targetWorkerCount": 0,
+                "targetWorkerSizeId": 0
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/audit_log_enabled')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/audit_log_events')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "CONNECTION",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/audit_log_exclude_users')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "azure_superuser",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/audit_log_include_users')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/binlog_expire_logs_seconds')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "0",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/binlog_group_commit_sync_delay')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "0",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/binlog_group_commit_sync_no_delay_count')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "0",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/binlog_row_image')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "minimal",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/binlog_sum_size_for_stop_pct_max')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "30",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/character_set_server')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "latin1",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/collation_server')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "latin1_swedish_ci",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/default_week_format')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "0",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/div_precision_increment')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "4",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/eq_range_index_dive_limit')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "200",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/event_scheduler')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/flush_time')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "0",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/ft_query_expansion_limit')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "20",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/group_concat_max_len')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "1024",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/init_connect')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_adaptive_flushing')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "ON",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_adaptive_flushing_lwm')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "10",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_adaptive_hash_index')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "ON",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_adaptive_hash_index_parts')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "8",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_adaptive_max_sleep_delay')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "150000",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_autoextend_increment')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "64",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_autoinc_lock_mode')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "1",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_buffer_pool_dump_pct')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "25",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_buffer_pool_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "16106127360",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_change_buffer_max_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "25",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_change_buffering')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "all",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_cmp_per_index_enabled')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_commit_concurrency')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "0",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_compression_failure_threshold_pct')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "5",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_compression_level')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "6",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_compression_pad_pct_max')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "50",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_concurrency_tickets')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "5000",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_deadlock_detect')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "ON",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_default_row_format')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "DYNAMIC",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_file_format')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "Barracuda",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_file_per_table')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "ON",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_fill_factor')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "100",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_ft_cache_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "8000000",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_ft_enable_stopword')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "ON",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_ft_max_token_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "84",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_ft_min_token_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "3",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_ft_num_word_optimize')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "2000",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_ft_result_cache_limit')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "2000000000",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_ft_sort_pll_degree')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "2",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_ft_total_cache_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "640000000",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_io_capacity')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "200",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_io_capacity_max')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "2000",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_large_prefix')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "ON",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_lock_wait_timeout')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "50",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_log_compressed_pages')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "ON",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_lru_scan_depth')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "1024",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_max_dirty_pages_pct')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "75",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_max_dirty_pages_pct_lwm')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "0",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_max_purge_lag')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "0",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_max_purge_lag_delay')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "0",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_old_blocks_pct')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "37",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_old_blocks_time')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "1000",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_online_alter_log_max_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "134217728",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_optimize_fulltext_only')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_page_cleaners')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "4",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_purge_batch_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "300",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_purge_rseg_truncate_frequency')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "128",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_purge_threads')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "4",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_random_read_ahead')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_read_ahead_threshold')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "56",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_read_io_threads')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "4",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_rollback_segments')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "128",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_stats_auto_recalc')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "ON",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_stats_include_delete_marked')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_stats_method')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "nulls_equal",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_stats_on_metadata')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_stats_persistent')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "ON",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_stats_persistent_sample_pages')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "20",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_stats_transient_sample_pages')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "8",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_sync_array_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "1",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_table_locks')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "ON",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_thread_concurrency')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "0",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_thread_sleep_delay')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "10000",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/innodb_write_io_threads')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "4",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/interactive_timeout')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "28800",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/join_buffer_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "262144",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/local_infile')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "ON",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/lock_wait_timeout')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "31536000",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/log_bin_trust_function_creators')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/log_output')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "FILE",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/log_queries_not_using_indexes')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/log_slow_admin_statements')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/log_slow_slave_statements')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/log_throttle_queries_not_using_indexes')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "0",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/long_query_time')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "10",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/lower_case_table_names')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "1",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/max_allowed_packet')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "536870912",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/max_connect_errors')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "100",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/max_connections')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "625",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/max_digest_length')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "1024",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/max_error_count')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "64",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/max_execution_time')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "0",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/max_heap_table_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "16777216",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/max_join_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "18446744073709551615",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/max_length_for_sort_data')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "1024",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/max_points_in_geometry')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "65536",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/max_prepared_stmt_count')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "16382",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/max_seeks_for_key')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "4294967295",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/max_sort_length')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "1024",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/max_sp_recursion_depth')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "0",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/max_user_connections')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "0",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/max_write_lock_count')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "4294967295",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/min_examined_row_limit')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "0",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/net_buffer_length')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "16384",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/net_read_timeout')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "120",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/net_retry_count')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "10",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/net_write_timeout')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "240",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/ngram_token_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "2",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/optimizer_prune_level')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "1",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/optimizer_search_depth')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "62",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/optimizer_switch')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "default",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/parser_max_mem_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "18446744073709551615",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/performance_schema')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "ON",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/preload_buffer_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "32768",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/query_cache_limit')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "1048576",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/query_cache_min_res_unit')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "4096",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/query_cache_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "0",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/query_cache_type')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/query_prealloc_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "8192",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/query_store_capture_interval')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "15",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/query_store_capture_mode')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "NONE",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/query_store_capture_utility_queries')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "NO",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/query_store_retention_period_in_days')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "7",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/query_store_wait_sampling_capture_mode')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "NONE",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/query_store_wait_sampling_frequency')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "30",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/range_alloc_block_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "4096",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/range_optimizer_max_mem_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "8388608",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/read_only')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/redirect_enabled')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/relay_log_space_limit')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "1073741824",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/replicate_wild_ignore_table')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "mysql.%",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/server_id')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "2424200501",
+                "source": "user-override"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/session_track_schema')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "ON",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/session_track_state_change')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/show_compatibility_56')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/skip_show_database')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/slave_net_timeout')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "60",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/slow_query_log')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "OFF",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/sort_buffer_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "524288",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/sql_mode')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/stored_program_cache')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "256",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/table_definition_cache')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "5000",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/table_open_cache')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "5000",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/table_open_cache_instances')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "1",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/thread_cache_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "14",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/thread_handling')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "one-thread-per-connection",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/thread_pool_batch_max_time')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "0",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/thread_pool_batch_wait_timeout')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "0",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/thread_pool_max_threads')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "65535",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/thread_pool_min_threads')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "1",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/time_zone')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "SYSTEM",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/tmp_table_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "16777216",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/transaction_alloc_block_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "8192",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/transaction_prealloc_size')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "4096",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/tx_isolation')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "REPEATABLE-READ",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/updatable_views_with_limit')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "YES",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/configurations",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/wait_timeout')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "value": "120",
+                "source": "system-default"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/databases",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/information_schema')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "charset": "utf8",
+                "collation": "utf8_general_ci"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/databases",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/mysql')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "charset": "latin1",
+                "collation": "latin1_swedish_ci"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/databases",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/performance_schema')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "charset": "utf8",
+                "collation": "utf8_general_ci"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/databases",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/photos')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "charset": "latin1",
+                "collation": "latin1_swedish_ci"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/databases",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/sys')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "charset": "utf8",
+                "collation": "utf8_general_ci"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/firewallRules",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/Allowfew')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "startIpAddress": "100.0.0.0",
+                "endIpAddress": "200.0.0.0"
+            }
+        },
+        {
+            "type": "Microsoft.DBforMySQL/servers/securityAlertPolicies",
+            "apiVersion": "2017-12-01",
+            "name": "[concat(parameters('servers_imageloader123_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.DBforMySQL/servers', parameters('servers_imageloader123_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled",
+                "disabledAlerts": [
+                    ""
+                ],
+                "emailAddresses": [
+                    ""
+                ],
+                "emailAccountAdmins": false,
+                "retentionDays": 0
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(parameters('storageAccounts_azurefunctionapp20200804_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_azurefunctionapp20200804_name'))]"
+            ],
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "properties": {
+                "cors": {
+                    "corsRules": []
+                },
+                "deleteRetentionPolicy": {
+                    "enabled": false
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/fileServices",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(parameters('storageAccounts_azurefunctionapp20200804_name'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_azurefunctionapp20200804_name'))]"
+            ],
+            "sku": {
+                "name": "Standard_LRS",
+                "tier": "Standard"
+            },
+            "properties": {
+                "cors": {
+                    "corsRules": []
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('sites_backPool_name')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_ASP_AzureFunctionApp20200804202733R_805d_name'))]"
+            ],
+            "kind": "app",
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "backpool.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "backpool.scm.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_ASP_AzureFunctionApp20200804202733R_805d_name'))]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {},
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": true,
+                "clientCertEnabled": false,
+                "hostNamesDisabled": false,
+                "containerSize": 0,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": false,
+                "redundancyMode": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('sites_ImageLoader_name')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_ASP_AzureFunctionApp20200804202733R_805d_name'))]"
+            ],
+            "kind": "app",
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "imageloader.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "imageloader.scm.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_ASP_AzureFunctionApp20200804202733R_805d_name'))]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {},
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": true,
+                "clientCertEnabled": false,
+                "hostNamesDisabled": false,
+                "containerSize": 0,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": false,
+                "redundancyMode": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2018-11-01",
+            "name": "[parameters('sites_LogForpdfGenerator_name')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_ASP_AzureFunctionApp20200804202733R_805d_name'))]"
+            ],
+            "kind": "app",
+            "properties": {
+                "enabled": true,
+                "hostNameSslStates": [
+                    {
+                        "name": "logforpdfgenerator.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Standard"
+                    },
+                    {
+                        "name": "logforpdfgenerator.scm.azurewebsites.net",
+                        "sslState": "Disabled",
+                        "hostType": "Repository"
+                    }
+                ],
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('serverfarms_ASP_AzureFunctionApp20200804202733R_805d_name'))]",
+                "reserved": false,
+                "isXenon": false,
+                "hyperV": false,
+                "siteConfig": {},
+                "scmSiteAlsoStopped": false,
+                "clientAffinityEnabled": true,
+                "clientCertEnabled": false,
+                "hostNamesDisabled": false,
+                "containerSize": 0,
+                "dailyMemoryTimeQuota": 0,
+                "httpsOnly": false,
+                "redundancyMode": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/config",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_backPool_name'), '/web')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_backPool_name'))]"
+            ],
+            "properties": {
+                "numberOfWorkers": 1,
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "iisstart.htm",
+                    "default.aspx",
+                    "index.php",
+                    "hostingstart.html"
+                ],
+                "netFrameworkVersion": "v4.0",
+                "requestTracingEnabled": false,
+                "remoteDebuggingEnabled": false,
+                "httpLoggingEnabled": false,
+                "logsDirectorySizeLimit": 35,
+                "detailedErrorLoggingEnabled": false,
+                "publishingUsername": "$backPool",
+                "azureStorageAccounts": {},
+                "scmType": "GitHubAction",
+                "use32BitWorkerProcess": true,
+                "webSocketsEnabled": false,
+                "alwaysOn": false,
+                "managedPipelineMode": "Integrated",
+                "virtualApplications": [
+                    {
+                        "virtualPath": "/",
+                        "physicalPath": "site\\wwwroot",
+                        "preloadEnabled": false
+                    }
+                ],
+                "loadBalancing": "LeastRequests",
+                "experiments": {
+                    "rampUpRules": []
+                },
+                "autoHealEnabled": false,
+                "localMySqlEnabled": false,
+                "ipSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictionsUseMain": false,
+                "http20Enabled": false,
+                "minTlsVersion": "1.2",
+                "ftpsState": "AllAllowed",
+                "reservedInstanceCount": 0
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/config",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_ImageLoader_name'), '/web')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_ImageLoader_name'))]"
+            ],
+            "properties": {
+                "numberOfWorkers": 1,
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "iisstart.htm",
+                    "default.aspx",
+                    "index.php",
+                    "hostingstart.html"
+                ],
+                "netFrameworkVersion": "v4.0",
+                "requestTracingEnabled": false,
+                "remoteDebuggingEnabled": false,
+                "httpLoggingEnabled": false,
+                "logsDirectorySizeLimit": 35,
+                "detailedErrorLoggingEnabled": false,
+                "publishingUsername": "$ImageLoader",
+                "azureStorageAccounts": {},
+                "scmType": "None",
+                "use32BitWorkerProcess": true,
+                "webSocketsEnabled": false,
+                "alwaysOn": false,
+                "managedPipelineMode": "Integrated",
+                "virtualApplications": [
+                    {
+                        "virtualPath": "/",
+                        "physicalPath": "site\\wwwroot",
+                        "preloadEnabled": false
+                    }
+                ],
+                "loadBalancing": "LeastRequests",
+                "experiments": {
+                    "rampUpRules": []
+                },
+                "autoHealEnabled": false,
+                "localMySqlEnabled": false,
+                "ipSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictionsUseMain": false,
+                "http20Enabled": false,
+                "minTlsVersion": "1.2",
+                "ftpsState": "AllAllowed",
+                "reservedInstanceCount": 0
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/config",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_LogForpdfGenerator_name'), '/web')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_LogForpdfGenerator_name'))]"
+            ],
+            "properties": {
+                "numberOfWorkers": 1,
+                "defaultDocuments": [
+                    "Default.htm",
+                    "Default.html",
+                    "Default.asp",
+                    "index.htm",
+                    "index.html",
+                    "iisstart.htm",
+                    "default.aspx",
+                    "index.php",
+                    "hostingstart.html"
+                ],
+                "netFrameworkVersion": "v2.0",
+                "requestTracingEnabled": false,
+                "remoteDebuggingEnabled": false,
+                "httpLoggingEnabled": false,
+                "logsDirectorySizeLimit": 35,
+                "detailedErrorLoggingEnabled": false,
+                "publishingUsername": "$LogForpdfGenerator",
+                "azureStorageAccounts": {},
+                "scmType": "None",
+                "use32BitWorkerProcess": true,
+                "webSocketsEnabled": false,
+                "alwaysOn": false,
+                "managedPipelineMode": "Integrated",
+                "virtualApplications": [
+                    {
+                        "virtualPath": "/",
+                        "physicalPath": "site\\wwwroot",
+                        "preloadEnabled": false
+                    }
+                ],
+                "loadBalancing": "LeastRequests",
+                "experiments": {
+                    "rampUpRules": []
+                },
+                "autoHealEnabled": false,
+                "localMySqlEnabled": false,
+                "ipSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictions": [
+                    {
+                        "ipAddress": "Any",
+                        "action": "Allow",
+                        "priority": 1,
+                        "name": "Allow all",
+                        "description": "Allow all access"
+                    }
+                ],
+                "scmIpSecurityRestrictionsUseMain": false,
+                "http20Enabled": false,
+                "minTlsVersion": "1.2",
+                "ftpsState": "AllAllowed",
+                "reservedInstanceCount": 0
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_backPool_name'), '/', parameters('sites_backPool_name'), '.azurewebsites.net')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_backPool_name'))]"
+            ],
+            "properties": {
+                "siteName": "backPool",
+                "hostNameType": "Verified"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_ImageLoader_name'), '/', parameters('sites_ImageLoader_name'), '.azurewebsites.net')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_ImageLoader_name'))]"
+            ],
+            "properties": {
+                "siteName": "ImageLoader",
+                "hostNameType": "Verified"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites/hostNameBindings",
+            "apiVersion": "2018-11-01",
+            "name": "[concat(parameters('sites_LogForpdfGenerator_name'), '/', parameters('sites_LogForpdfGenerator_name'), '.azurewebsites.net')]",
+            "location": "East US",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', parameters('sites_LogForpdfGenerator_name'))]"
+            ],
+            "properties": {
+                "siteName": "LogForpdfGenerator",
+                "hostNameType": "Verified"
+            }
+        },
+        {
+            "type": "microsoft.alertsmanagement/smartdetectoralertrules",
+            "apiVersion": "2019-06-01",
+            "name": "[parameters('smartdetectoralertrules_failure_anomalies___backpool_name')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('microsoft.insights/components', parameters('components_backPool_name'))]",
+                "[resourceId('microsoft.insights/actionGroups', parameters('actionGroups_Application_Insights_Smart_Detection_name'))]"
+            ],
+            "properties": {
+                "description": "Failure Anomalies notifies you of an unusual rise in the rate of failed HTTP requests or dependency calls.",
+                "state": "Enabled",
+                "severity": "Sev3",
+                "frequency": "PT1M",
+                "detector": {
+                    "id": "FailureAnomaliesDetector",
+                    "name": "Failure Anomalies",
+                    "description": "Detects if your application experiences an abnormal rise in the rate of HTTP requests or dependency calls that are reported as failed. The anomaly detection uses machine learning algorithms and occurs in near real time, therefore there's no need to define a frequency for this signal.<br/></br/>To help you triage and diagnose the problem, an analysis of the characteristics of the failures and related telemetry is provided with the detection. This feature works for any app, hosted in the cloud or on your own servers, that generates request or dependency telemetry - for example, if you have a worker role that calls <a class=\"ext-smartDetecor-link\" href=\\\"https://docs.microsoft.com/azure/application-insights/app-insights-api-custom-events-metrics#trackrequest\\\" target=\\\"_blank\\\">TrackRequest()</a> or <a class=\"ext-smartDetecor-link\" href=\\\"https://docs.microsoft.com/azure/application-insights/app-insights-api-custom-events-metrics#trackdependency\\\" target=\\\"_blank\\\">TrackDependency()</a>.<br/><br/><a class=\"ext-smartDetecor-link\" href=\\\"https://docs.microsoft.com/azure/azure-monitor/app/proactive-failure-diagnostics\\\" target=\\\"_blank\\\">Learn more about Failure Anomalies</a>",
+                    "supportedResourceTypes": [
+                        "ApplicationInsights"
+                    ]
+                },
+                "scope": [
+                    "[resourceId('microsoft.insights/components', parameters('components_backPool_name'))]"
+                ],
+                "actionGroups": {
+                    "groupIds": [
+                        "[resourceId('microsoft.insights/actionGroups', parameters('actionGroups_Application_Insights_Smart_Detection_name'))]"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "microsoft.alertsmanagement/smartdetectoralertrules",
+            "apiVersion": "2019-06-01",
+            "name": "[parameters('smartdetectoralertrules_failure_anomalies___imageloader_name')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('microsoft.insights/components', parameters('components_ImageLoader_name'))]",
+                "[resourceId('microsoft.insights/actionGroups', parameters('actionGroups_Application_Insights_Smart_Detection_name'))]"
+            ],
+            "properties": {
+                "description": "Failure Anomalies notifies you of an unusual rise in the rate of failed HTTP requests or dependency calls.",
+                "state": "Enabled",
+                "severity": "Sev3",
+                "frequency": "PT1M",
+                "detector": {
+                    "id": "FailureAnomaliesDetector",
+                    "name": "Failure Anomalies",
+                    "description": "Detects if your application experiences an abnormal rise in the rate of HTTP requests or dependency calls that are reported as failed. The anomaly detection uses machine learning algorithms and occurs in near real time, therefore there's no need to define a frequency for this signal.<br/></br/>To help you triage and diagnose the problem, an analysis of the characteristics of the failures and related telemetry is provided with the detection. This feature works for any app, hosted in the cloud or on your own servers, that generates request or dependency telemetry - for example, if you have a worker role that calls <a class=\"ext-smartDetecor-link\" href=\\\"https://docs.microsoft.com/azure/application-insights/app-insights-api-custom-events-metrics#trackrequest\\\" target=\\\"_blank\\\">TrackRequest()</a> or <a class=\"ext-smartDetecor-link\" href=\\\"https://docs.microsoft.com/azure/application-insights/app-insights-api-custom-events-metrics#trackdependency\\\" target=\\\"_blank\\\">TrackDependency()</a>.<br/><br/><a class=\"ext-smartDetecor-link\" href=\\\"https://docs.microsoft.com/azure/azure-monitor/app/proactive-failure-diagnostics\\\" target=\\\"_blank\\\">Learn more about Failure Anomalies</a>",
+                    "supportedResourceTypes": [
+                        "ApplicationInsights"
+                    ]
+                },
+                "scope": [
+                    "[resourceId('microsoft.insights/components', parameters('components_ImageLoader_name'))]"
+                ],
+                "actionGroups": {
+                    "groupIds": [
+                        "[resourceId('microsoft.insights/actionGroups', parameters('actionGroups_Application_Insights_Smart_Detection_name'))]"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "microsoft.alertsmanagement/smartdetectoralertrules",
+            "apiVersion": "2019-06-01",
+            "name": "[parameters('smartdetectoralertrules_failure_anomalies___logforpdfgenerator_name')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('microsoft.insights/components', parameters('components_LogForpdfGenerator_name'))]",
+                "[resourceId('microsoft.insights/actionGroups', parameters('actionGroups_Application_Insights_Smart_Detection_name'))]"
+            ],
+            "properties": {
+                "description": "Failure Anomalies notifies you of an unusual rise in the rate of failed HTTP requests or dependency calls.",
+                "state": "Enabled",
+                "severity": "Sev3",
+                "frequency": "PT1M",
+                "detector": {
+                    "id": "FailureAnomaliesDetector",
+                    "name": "Failure Anomalies",
+                    "description": "Detects if your application experiences an abnormal rise in the rate of HTTP requests or dependency calls that are reported as failed. The anomaly detection uses machine learning algorithms and occurs in near real time, therefore there's no need to define a frequency for this signal.<br/></br/>To help you triage and diagnose the problem, an analysis of the characteristics of the failures and related telemetry is provided with the detection. This feature works for any app, hosted in the cloud or on your own servers, that generates request or dependency telemetry - for example, if you have a worker role that calls <a class=\"ext-smartDetecor-link\" href=\\\"https://docs.microsoft.com/azure/application-insights/app-insights-api-custom-events-metrics#trackrequest\\\" target=\\\"_blank\\\">TrackRequest()</a> or <a class=\"ext-smartDetecor-link\" href=\\\"https://docs.microsoft.com/azure/application-insights/app-insights-api-custom-events-metrics#trackdependency\\\" target=\\\"_blank\\\">TrackDependency()</a>.<br/><br/><a class=\"ext-smartDetecor-link\" href=\\\"https://docs.microsoft.com/azure/azure-monitor/app/proactive-failure-diagnostics\\\" target=\\\"_blank\\\">Learn more about Failure Anomalies</a>",
+                    "supportedResourceTypes": [
+                        "ApplicationInsights"
+                    ]
+                },
+                "scope": [
+                    "[resourceId('microsoft.insights/components', parameters('components_LogForpdfGenerator_name'))]"
+                ],
+                "actionGroups": {
+                    "groupIds": [
+                        "[resourceId('microsoft.insights/actionGroups', parameters('actionGroups_Application_Insights_Smart_Detection_name'))]"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(parameters('storageAccounts_azurefunctionapp20200804_name'), '/default/azure-webjobs-hosts')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_azurefunctionapp20200804_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_azurefunctionapp20200804_name'))]"
+            ],
+            "properties": {
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(parameters('storageAccounts_azurefunctionapp20200804_name'), '/default/azure-webjobs-secrets')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', parameters('storageAccounts_azurefunctionapp20200804_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_azurefunctionapp20200804_name'))]"
+            ],
+            "properties": {
+                "publicAccess": "None"
+            }
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+            "apiVersion": "2019-06-01",
+            "name": "[concat(parameters('storageAccounts_azurefunctionapp20200804_name'), '/default/', parameters('storageAccounts_azurefunctionapp20200804_name'), '202733')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/fileServices', parameters('storageAccounts_azurefunctionapp20200804_name'), 'default')]",
+                "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccounts_azurefunctionapp20200804_name'))]"
+            ],
+            "properties": {
+                "shareQuota": 5120
+            }
+        }
+    ]
+}
